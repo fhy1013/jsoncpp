@@ -110,26 +110,65 @@ void TestJson() {
 
     stream_cfg_.reset(new StreamConfig);
 
-    stream_cfg_->AddProject("test", 1);
+    // stream_cfg_->AddProject("pro_1", 1);
+    // stream_cfg_->AddProject("pro_2", 2);
+    // stream_cfg_->AddProject("pro_3", 3);
+    // stream_cfg_->AddProject("pro_4", 4);
+    // // stream_cfg_->DeleteProject(1);
 
-    // stream_cfg_->AddStream("test1", 1, "./record1.txt");
-    // stream_cfg_->AddStream("test2", 2, "./record2.txt");
-    // stream_cfg_->AddStream("test1", 3, "./record3.txt");
-    // stream_cfg_->AddStream("test3", 4, "COM4", "115200", "5", "0", "1", "0");
-    // stream_cfg_->AddStream("test1", 5, "COM5", "38400", "5", "0", "1", "0");
-    // stream_cfg_->AddStream("test2", 6, "COM6", "9600", "5", "0", "1", "0");
-    // stream_cfg_->AddStream("test1", 7, "COM7", "921600", "5", "0", "1", "0");
+    // stream_cfg_->AddStream(1, 1, "./record1.txt");
+    // stream_cfg_->AddStream(2, 2, "./record2.txt");
+    // stream_cfg_->AddStream(3, 3, "./record3.txt");
+    // stream_cfg_->AddStream(3, 4, "COM4", 115200, 5, 0, 1, 0);
+    // stream_cfg_->AddStream(1, 5, "COM5", 38400, 5, 0, 1, 0);
+    // stream_cfg_->AddStream(2, 6, "COM6", 9600, 5, 0, 1, 0);
+    // stream_cfg_->AddStream(1, 7, "COM7", 921600, 5, 0, 1, 0);
     // stream_cfg_->SaveConfig();
 
-    // stream_cfg_->DeleteStream("test1", 1);
-    // stream_cfg_->DeleteStream("test3", 4);
+    // stream_cfg_->DeleteStream(1, 1);
+    // stream_cfg_->DeleteStream(2, 2);
+    // stream_cfg_->DeleteStream(2, 6);
+    // stream_cfg_->EditProject("pro_1_1", 1);
 
-    stream_cfg_->SaveConfig();
+    // stream_cfg_->DeleteProject(3);
+
+    // stream_cfg_->SaveConfig();
+
+    std::list<Project_T> cfg;
+    stream_cfg_->GetConfig(cfg);
 
     int x = 0;
 
     return;
 }
+
+// typedef struct {
+//     int id;
+//     std::string ss;
+//     std::list<int> ll;
+// } P_T;
+
+// typedef struct {
+//     int x;
+//     std::string s;
+//     std::list<P_T> pt;
+// } T_T;
+
+// void GetList(std::list<T_T> &l) {
+//     P_T pt;
+//     pt.id = 1;
+//     pt.ss = "ss";
+//     pt.ll.push_back(1);
+//     pt.ll.push_back(2);
+
+//     T_T t;
+//     t.x = 0;
+//     t.s = "s";
+//     t.pt.push_back(pt);
+
+//     l.push_back(t);
+//     return;
+// }
 
 int main() {
     std::cout << "hello..." << std::endl;
@@ -143,6 +182,11 @@ int main() {
     // JsonFunc();
 
     TestJson();
+
+    // std::list<T_T> l;
+    // GetList(l);
+
+    // int x = 1;
 
     return 0;
 }

@@ -59,58 +59,49 @@ bool StreamConfig::LoadConfig() {
     }
 }
 
-bool StreamConfig::AddStream(std::string project, Json::Value stream) {
+bool StreamConfig::AddStream(size_t project_id, Json::Value stream) {
     Json::Value root;
     root = root_[kRoot];
-    bool exit = false;  // 是否存在对应的project对象
+    bool exist = false;  // 是否存在对应的project对象
     if (!root.isNull()) {
         for (auto i = 0; i < root.size(); ++i) {
-            if (root[i][kProject] == project) {
-                exit = true;
+            if (root[i][kId].asUInt() == project_id) {
+                exist = true;
                 root_[kRoot][i][kStream].append(stream);
                 break;
             }
         }
     }
-
-    if (!exit) {
-        Json::Value obj;
-        obj[kProject] = project;
-        obj[kStream].append(stream);
-        root_[kRoot].append(obj);
-    }
-    return true;
+    return exist;
 }
 
-bool StreamConfig::AddStream(std::string project, size_t id,
+bool StreamConfig::AddStream(size_t project_id, size_t id,
                              std::string file_name) {
     Json::Value stream = CreateStream(id, file_name);
 
-    return AddStream(project, stream);
+    return AddStream(project_id, stream);
 }
 
 Json::Value StreamConfig::CreateStream(size_t id, std::string file_name) {
     Json::Value stream;
-    stream[kId] = std::to_string(id);
+    stream[kId] = id;
     stream[kType] = kFile;
     stream[kFileNamePath] = file_name;
     return stream;
 }
 
-bool StreamConfig::AddStream(std::string project, size_t id, std::string port,
-                             std::string baud, std::string bit,
-                             std::string parity, std::string stop,
-                             std::string flow) {
+bool StreamConfig::AddStream(size_t project_id, size_t id, std::string port,
+                             int baud, int bit, int parity, int stop,
+                             int flow) {
     Json::Value stream = CreateStream(id, port, baud, bit, parity, stop, flow);
-    return AddStream(project, stream);
+    return AddStream(project_id, stream);
 }
 
-Json::Value StreamConfig::CreateStream(size_t id, std::string port,
-                                       std::string baud, std::string bit,
-                                       std::string parity, std::string stop,
-                                       std::string flow) {
+Json::Value StreamConfig::CreateStream(size_t id, std::string port, int baud,
+                                       int bit, int parity, int stop,
+                                       int flow) {
     Json::Value stream;
-    stream[kId] = std::to_string(id);
+    stream[kId] = id;
     stream[kType] = kSerial;
     stream[kPort] = port;
     stream[kBaud] = baud;
@@ -121,33 +112,26 @@ Json::Value StreamConfig::CreateStream(size_t id, std::string port,
     return stream;
 }
 
-bool StreamConfig::DeleteStream(std::string project, size_t id) {
+bool StreamConfig::DeleteStream(size_t project_id, size_t id) {
     Json::Value root;
     root = root_[kRoot];
-    bool exit = false;  // 是否存在对应的project对象
+    bool exist = false;  // 是否存在对应的project对象
     if (!root.isNull()) {
         for (auto i = 0; i < root.size(); ++i) {
-            if (root[i][kProject] == project) {
+            if (root[i][kId].asUInt() == project_id) {
                 Json::Value stream = root[i][kStream];
                 for (auto j = 0; j < stream.size(); ++j) {
-                    if (stream[j][kId] == std::to_string(id)) {
-                        exit = true;
+                    if (stream[j][kId].asUInt() == id) {
+                        exist = true;
                         root_[kRoot][i][kStream].removeIndex(j, nullptr);
                         break;
                     }
                 }
-                if (exit) {
-                    Json::Value stream = root_[kRoot][i][kStream];
-                    auto size = stream.size();
-                    if (0 == stream.size()) {
-                        root_[kRoot].removeIndex(i, nullptr);
-                    }
-                    break;
-                }
+                break;
             }
         }
     }
-    return true;
+    return exist;
 }
 
 bool StreamConfig::AddProject(std::string project, size_t project_id) {
@@ -155,8 +139,114 @@ bool StreamConfig::AddProject(std::string project, size_t project_id) {
     obj[kProject] = project;
     obj[kId] = project_id;
     Json::Value stream;
-    obj[kStream].append(stream);
     root_[kRoot].append(obj);
+    return true;
+}
+
+bool StreamConfig::DeleteProject(size_t project_id) {
+    Json::Value root;
+    root = root_[kRoot];
+    bool exist = false;
+    if (!root.isNull()) {
+        for (auto i = 0; i < root.size(); ++i) {
+            if (root[i][kId].asUInt() == project_id) {
+                root_[kRoot].removeIndex(i, nullptr);
+                exist = true;
+                break;
+            }
+        }
+    }
+    return exist;
+}
+
+bool StreamConfig::EditProject(std::string project, size_t project_id) {
+    Json::Value root;
+    root = root_[kRoot];
+    bool exist = false;
+    if (!root.isNull()) {
+        for (auto i = 0; i < root.size(); ++i) {
+            if (root[i][kId].asUInt() == project_id) {
+                root_[kRoot][i][kProject] = project;
+                exist = true;
+            }
+        }
+    }
+    return exist;
+}
+
+// bool StreamConfig::GetConfig(std::vector<Project_T> &cfg) {
+//     Json::Value root;
+//     root = root_[kRoot];
+//     if (!root.isNull()) {
+//         for (auto i = 0; i < root.size(); ++i) {
+//             Project_T pro;
+//             pro.id = root[i][kId].asUInt();
+//             pro.project = root[i][kProject].asString();
+//             Json::Value stream = root[i][kStream];
+//             if (0 < stream.size()) {
+//                 for (auto j = 0; j < stream.size(); ++j) {
+//                     Stream_T str;
+//                     str.id = stream[j][kId].asUInt();
+//                     str.type = stream[j][kType].asString();
+//                     StreamRes_T res;
+//                     JsonToStreamRes(str.type, stream[j], res);
+//                     str.body.push_back(res);
+//                     pro.stream.push_back(str);
+//                 }
+//             }
+//             cfg.push_back(pro);
+//         }
+//     }
+//     return true;
+// }
+
+bool StreamConfig::GetConfig(std::list<Project_T> &cfg) {
+    Json::Value root;
+    root = root_[kRoot];
+    if (!root.isNull()) {
+        for (auto i = 0; i < root.size(); ++i) {
+            Project_T pro;
+            pro.id = root[i][kId].asUInt();
+            pro.project = root[i][kProject].asString();
+            Json::Value stream = root[i][kStream];
+            if (0 < stream.size()) {
+                for (auto j = 0; j < stream.size(); ++j) {
+                    Stream_T str;
+                    str.id = stream[j][kId].asUInt();
+                    str.type = stream[j][kType].asString();
+                    StreamRes_T res;
+                    JsonToStreamRes(str.type, stream[j], res);
+                    str.body.push_back(res);
+                    pro.stream.push_back(str);
+                }
+            }
+            cfg.push_back(pro);
+        }
+    }
+    return true;
 }
 
 void StreamConfig::Init() { LoadConfig(); }
+
+bool StreamConfig::JsonToStreamRes(const std::string type,
+                                   const Json::Value &json,
+                                   StreamRes_T &stream) {
+    if (type == kFile) {
+        // 文件
+        auto file = json[kFileNamePath].asString();
+        strncpy(stream.file.file, file.c_str(), sizeof(stream.file.file));
+    } else if (type == kSerial) {
+        // 串口
+        auto port = json[kPort].asString();
+        strncpy(stream.serial.port, port.c_str(), sizeof(stream.serial.port));
+        stream.serial.baud = json[kBaud].asInt();
+        stream.serial.bit = json[kBit].asInt();
+        stream.serial.parity = json[kParity].asInt();
+        stream.serial.stop = json[kStop].asInt();
+        stream.serial.flow = json[kFlow].asInt();
+    } else {
+        // 其他
+        return false;
+    }
+    return true;
+}
