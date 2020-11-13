@@ -4,9 +4,9 @@
 #include <iostream>
 #include <sstream>
 
-StreamConfig::StreamConfig() { Init(); }
+Config::StreamConfig::StreamConfig() { Init(); }
 
-std::string StreamConfig::ToString() const {
+std::string Config::StreamConfig::ToString() const {
     Json::StreamWriterBuilder writer_builder;
     std::ostringstream os;
 
@@ -16,7 +16,7 @@ std::string StreamConfig::ToString() const {
     return os.str();
 }
 
-bool StreamConfig::FromString(const std::string &str) {
+bool Config::StreamConfig::FromString(const std::string &str) {
     JSONCPP_STRING errs;
     Json::CharReaderBuilder reader_builder;
 
@@ -32,7 +32,7 @@ bool StreamConfig::FromString(const std::string &str) {
     return true;
 }
 
-bool StreamConfig::SaveConfig() {
+bool Config::StreamConfig::SaveConfig() {
     std::ofstream out(cfg_file_);
     if (out.is_open()) {
         out << ToString();
@@ -45,7 +45,7 @@ bool StreamConfig::SaveConfig() {
     }
 }
 
-bool StreamConfig::LoadConfig() {
+bool Config::StreamConfig::LoadConfig() {
     std::ifstream in(cfg_file_);
     if (in.is_open()) {
         std::stringstream ss;
@@ -59,12 +59,12 @@ bool StreamConfig::LoadConfig() {
     }
 }
 
-bool StreamConfig::AddStream(size_t project_id, Json::Value stream) {
+bool Config::StreamConfig::AddStream(size_t project_id, Json::Value stream) {
     Json::Value root;
     root = root_[kRoot];
     bool exist = false;  // 是否存在对应的project对象
     if (!root.isNull()) {
-        for (auto i = 0; i < root.size(); ++i) {
+        for (auto i = 0; static_cast<size_t>(i) < root.size(); ++i) {
             if (root[i][kId].asUInt() == project_id) {
                 exist = true;
                 root_[kRoot][i][kStream].append(stream);
@@ -75,55 +75,57 @@ bool StreamConfig::AddStream(size_t project_id, Json::Value stream) {
     return exist;
 }
 
-bool StreamConfig::AddStream(size_t project_id, size_t id,
-                             std::string file_name) {
-    Json::Value stream = CreateStream(id, file_name);
+bool Config::StreamConfig::AddStream(size_t project_id, size_t id,
+                                     std::string stream_name,
+                                     std::string file_name) {
+    Json::Value stream = CreateStream(id, stream_name, file_name);
 
     return AddStream(project_id, stream);
 }
 
-Json::Value StreamConfig::CreateStream(size_t id, std::string file_name) {
+Json::Value Config::StreamConfig::CreateStream(size_t id,
+                                               std::string stream_name,
+                                               std::string file_name) {
     Json::Value stream;
     stream[kId] = id;
     stream[kType] = kFile;
     stream[kFileNamePath] = file_name;
+    stream[kStreamName] = stream_name;
     return stream;
 }
 
-bool StreamConfig::AddStream(size_t project_id, size_t id, std::string port,
-                             int baud, int bit, int parity, int stop,
-                             int flow) {
-    Json::Value stream = CreateStream(id, port, baud, bit, parity, stop, flow);
+bool Config::StreamConfig::AddStream(size_t project_id, size_t id,
+                                     std::string stream_name, std::string port,
+                                     int baud) {
+    Json::Value stream = CreateStream(id, stream_name, port, baud);
     return AddStream(project_id, stream);
 }
 
-Json::Value StreamConfig::CreateStream(size_t id, std::string port, int baud,
-                                       int bit, int parity, int stop,
-                                       int flow) {
+Json::Value Config::StreamConfig::CreateStream(size_t id,
+                                               std::string stream_name,
+                                               std::string port, int baud) {
     Json::Value stream;
     stream[kId] = id;
     stream[kType] = kSerial;
     stream[kPort] = port;
     stream[kBaud] = baud;
-    stream[kBit] = bit;
-    stream[kParity] = parity;
-    stream[kPort] = stop;
-    stream[kFlow] = flow;
+    stream[kStreamName] = stream_name;
     return stream;
 }
 
-bool StreamConfig::DeleteStream(size_t project_id, size_t id) {
+bool Config::StreamConfig::DeleteStream(size_t project_id, size_t id) {
     Json::Value root;
     root = root_[kRoot];
     bool exist = false;  // 是否存在对应的project对象
     if (!root.isNull()) {
-        for (auto i = 0; i < root.size(); ++i) {
+        for (auto i = 0; static_cast<size_t>(i) < root.size(); ++i) {
             if (root[i][kId].asUInt() == project_id) {
                 Json::Value stream = root[i][kStream];
-                for (auto j = 0; j < stream.size(); ++j) {
+                for (auto j = 0; static_cast<size_t>(j) < stream.size(); ++j) {
                     if (stream[j][kId].asUInt() == id) {
                         exist = true;
-                        root_[kRoot][i][kStream].removeIndex(j, nullptr);
+                        root_[kRoot][i][kStream].removeIndex(
+                            static_cast<size_t>(j), nullptr);
                         break;
                     }
                 }
@@ -134,7 +136,7 @@ bool StreamConfig::DeleteStream(size_t project_id, size_t id) {
     return exist;
 }
 
-bool StreamConfig::AddProject(std::string project, size_t project_id) {
+bool Config::StreamConfig::AddProject(std::string project, size_t project_id) {
     Json::Value obj;
     obj[kProject] = project;
     obj[kId] = project_id;
@@ -143,14 +145,14 @@ bool StreamConfig::AddProject(std::string project, size_t project_id) {
     return true;
 }
 
-bool StreamConfig::DeleteProject(size_t project_id) {
+bool Config::StreamConfig::DeleteProject(size_t project_id) {
     Json::Value root;
     root = root_[kRoot];
     bool exist = false;
     if (!root.isNull()) {
-        for (auto i = 0; i < root.size(); ++i) {
+        for (auto i = 0; static_cast<size_t>(i) < root.size(); ++i) {
             if (root[i][kId].asUInt() == project_id) {
-                root_[kRoot].removeIndex(i, nullptr);
+                root_[kRoot].removeIndex(static_cast<size_t>(i), nullptr);
                 exist = true;
                 break;
             }
@@ -159,12 +161,12 @@ bool StreamConfig::DeleteProject(size_t project_id) {
     return exist;
 }
 
-bool StreamConfig::EditProject(std::string project, size_t project_id) {
+bool Config::StreamConfig::EditProject(std::string project, size_t project_id) {
     Json::Value root;
     root = root_[kRoot];
     bool exist = false;
     if (!root.isNull()) {
-        for (auto i = 0; i < root.size(); ++i) {
+        for (auto i = 0; static_cast<size_t>(i) < root.size(); ++i) {
             if (root[i][kId].asUInt() == project_id) {
                 root_[kRoot][i][kProject] = project;
                 exist = true;
@@ -174,63 +176,75 @@ bool StreamConfig::EditProject(std::string project, size_t project_id) {
     return exist;
 }
 
-// bool StreamConfig::GetConfig(std::vector<Project_T> &cfg) {
-//     Json::Value root;
-//     root = root_[kRoot];
-//     if (!root.isNull()) {
-//         for (auto i = 0; i < root.size(); ++i) {
-//             Project_T pro;
-//             pro.id = root[i][kId].asUInt();
-//             pro.project = root[i][kProject].asString();
-//             Json::Value stream = root[i][kStream];
-//             if (0 < stream.size()) {
-//                 for (auto j = 0; j < stream.size(); ++j) {
-//                     Stream_T str;
-//                     str.id = stream[j][kId].asUInt();
-//                     str.type = stream[j][kType].asString();
-//                     StreamRes_T res;
-//                     JsonToStreamRes(str.type, stream[j], res);
-//                     str.body.push_back(res);
-//                     pro.stream.push_back(str);
-//                 }
-//             }
-//             cfg.push_back(pro);
-//         }
-//     }
-//     return true;
-// }
-
-bool StreamConfig::GetConfig(std::list<Project_T> &cfg) {
+bool Config::StreamConfig::GetConfig(std::list<Project_T> &cfg) {
     Json::Value root;
     root = root_[kRoot];
+    bool exist = false;
     if (!root.isNull()) {
-        for (auto i = 0; i < root.size(); ++i) {
+        for (auto i = 0; static_cast<size_t>(i) < root.size(); ++i) {
             Project_T pro;
             pro.id = root[i][kId].asUInt();
             pro.project = root[i][kProject].asString();
             Json::Value stream = root[i][kStream];
             if (0 < stream.size()) {
-                for (auto j = 0; j < stream.size(); ++j) {
+                for (auto j = 0; static_cast<size_t>(j) < stream.size(); ++j) {
                     Stream_T str;
                     str.id = stream[j][kId].asUInt();
                     str.type = stream[j][kType].asString();
+                    str.stream_name = stream[j][kStreamName].asString();
                     StreamRes_T res;
                     JsonToStreamRes(str.type, stream[j], res);
-                    str.body.push_back(res);
+                    str.body = res;
                     pro.stream.push_back(str);
+                    exist = true;
                 }
             }
             cfg.push_back(pro);
         }
     }
-    return true;
+    return exist;
 }
 
-void StreamConfig::Init() { LoadConfig(); }
+bool Config::StreamConfig::GetConfig(const size_t project_id,
+                                     const size_t stream_id, Project_T &cfg) {
+    Json::Value root;
+    root = root_[kRoot];
+    bool exist = false;
+    if (!root.isNull()) {
+        for (auto i = 0; static_cast<size_t>(i) < root.size(); ++i) {
+            if (root[i][kId].asUInt() == project_id) {
+                auto stream = root[i][kStream];
+                if (stream.size() > 0) {
+                    for (auto j = 0; static_cast<size_t>(j) < stream.size();
+                         ++j) {
+                        if (stream[j][kId].asUInt() == stream_id) {
+                            Stream_T str;
+                            str.id = stream[j][kId].asUInt();
+                            str.type = stream[j][kType].asString();
+                            str.stream_name = stream[j][kStreamName].asString();
+                            StreamRes_T res;
+                            JsonToStreamRes(str.type, stream[j], res);
+                            str.body = res;
+                            cfg.stream.push_back(str);
+                            cfg.id = project_id;
+                            cfg.project = root[i][kProject].asString();
+                            exist = true;
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+    return exist;
+}
 
-bool StreamConfig::JsonToStreamRes(const std::string type,
-                                   const Json::Value &json,
-                                   StreamRes_T &stream) {
+void Config::StreamConfig::Init() { LoadConfig(); }
+
+bool Config::StreamConfig::JsonToStreamRes(const std::string type,
+                                           const Json::Value &json,
+                                           StreamRes_T &stream) {
     if (type == kFile) {
         // 文件
         auto file = json[kFileNamePath].asString();
@@ -240,10 +254,10 @@ bool StreamConfig::JsonToStreamRes(const std::string type,
         auto port = json[kPort].asString();
         strncpy(stream.serial.port, port.c_str(), sizeof(stream.serial.port));
         stream.serial.baud = json[kBaud].asInt();
-        stream.serial.bit = json[kBit].asInt();
-        stream.serial.parity = json[kParity].asInt();
-        stream.serial.stop = json[kStop].asInt();
-        stream.serial.flow = json[kFlow].asInt();
+        //        stream.serial.bit = json[kBit].asInt();
+        //        stream.serial.parity = json[kParity].asInt();
+        //        stream.serial.stop = json[kStop].asInt();
+        //        stream.serial.flow = json[kFlow].asInt();
     } else {
         // 其他
         return false;

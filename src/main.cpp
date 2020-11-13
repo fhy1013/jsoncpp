@@ -106,24 +106,24 @@ void JsonFunc() {
 }
 
 void TestJson() {
-    std::shared_ptr<StreamConfig> stream_cfg_;
+    std::shared_ptr<Config::StreamConfig> stream_cfg_;
 
-    stream_cfg_.reset(new StreamConfig);
+    stream_cfg_.reset(new Config::StreamConfig);
 
-    // stream_cfg_->AddProject("pro_1", 1);
-    // stream_cfg_->AddProject("pro_2", 2);
-    // stream_cfg_->AddProject("pro_3", 3);
-    // stream_cfg_->AddProject("pro_4", 4);
-    // // stream_cfg_->DeleteProject(1);
+    stream_cfg_->AddProject("pro_1", 1);
+    stream_cfg_->AddProject("pro_2", 2);
+    stream_cfg_->AddProject("pro_3", 3);
+    stream_cfg_->AddProject("pro_4", 4);
+    // stream_cfg_->DeleteProject(1);
 
-    // stream_cfg_->AddStream(1, 1, "./record1.txt");
-    // stream_cfg_->AddStream(2, 2, "./record2.txt");
-    // stream_cfg_->AddStream(3, 3, "./record3.txt");
-    // stream_cfg_->AddStream(3, 4, "COM4", 115200, 5, 0, 1, 0);
-    // stream_cfg_->AddStream(1, 5, "COM5", 38400, 5, 0, 1, 0);
-    // stream_cfg_->AddStream(2, 6, "COM6", 9600, 5, 0, 1, 0);
-    // stream_cfg_->AddStream(1, 7, "COM7", 921600, 5, 0, 1, 0);
-    // stream_cfg_->SaveConfig();
+    stream_cfg_->AddStream(1, 1, "stream1", "./record1.txt");
+    stream_cfg_->AddStream(2, 2, "stream2", "./record2.txt");
+    stream_cfg_->AddStream(3, 3, "stream3", "./record3.txt");
+    stream_cfg_->AddStream(3, 4, "stream4", "COM4", 115200);
+    stream_cfg_->AddStream(1, 5, "stream5", "COM5", 38400);
+    stream_cfg_->AddStream(2, 6, "stream6", "COM6", 9600);
+    stream_cfg_->AddStream(1, 7, "stream7", "COM7", 921600);
+    stream_cfg_->SaveConfig();
 
     // stream_cfg_->DeleteStream(1, 1);
     // stream_cfg_->DeleteStream(2, 2);
@@ -134,8 +134,15 @@ void TestJson() {
 
     // stream_cfg_->SaveConfig();
 
-    std::list<Project_T> cfg;
+    std::list<Config::Project_T> cfg;
     stream_cfg_->GetConfig(cfg);
+
+    size_t p_id = 1;
+    size_t s_id = 2;
+    Config::Project_T cfg1;
+    auto res = stream_cfg_->GetConfig(p_id, s_id, cfg1);
+    s_id = 5;
+    res = stream_cfg_->GetConfig(p_id, s_id, cfg1);
 
     int x = 0;
 
