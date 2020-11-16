@@ -8,23 +8,6 @@
 
 using namespace std;
 
-// void readStrProJson() {
-//     string strValue =
-//         "{\"name\":\"shuiyixin\",\"major\":[{\"AI\":\"MachineLearning\"},{"
-//         "\"AI\":\"DeepLearning\"},{\"AI\":\"ComputerVision\"}]}";
-//     Json::Reader reader;
-//     Json::Value value;
-//     if (reader.parse(strValue, value)) {
-//         string out = value["name"].asString();
-//         cout << out << endl;
-//         const Json::Value arrayObj = value["major"];
-//         for (unsigned int i = 0; i < arrayObj.size(); i++) {
-//             out = arrayObj[i]["AI"].asString();
-//             cout << out << endl;
-//         }
-//     }
-// }
-
 std::string createJson() {
     std::string jsonStr;
     Json::Value root, lang, mail;
@@ -116,13 +99,65 @@ void TestJson() {
     stream_cfg_->AddProject("pro_4", 4);
     // stream_cfg_->DeleteProject(1);
 
-    stream_cfg_->AddStream(1, 1, "stream1", "./record1.txt");
-    stream_cfg_->AddStream(2, 2, "stream2", "./record2.txt");
-    stream_cfg_->AddStream(3, 3, "stream3", "./record3.txt");
-    stream_cfg_->AddStream(3, 4, "stream4", "COM4", 115200);
-    stream_cfg_->AddStream(1, 5, "stream5", "COM5", 38400);
-    stream_cfg_->AddStream(2, 6, "stream6", "COM6", 9600);
-    stream_cfg_->AddStream(1, 7, "stream7", "COM7", 921600);
+    Config::AddStreamCfg_T cfg;
+    cfg.id = 1;
+    Config::Stream_T stream;
+    cfg.stream.head.id = 1;
+    cfg.stream.head.connect_type = Config::kFile;
+    cfg.stream.head.station_type = Config::kBaseStation;
+    cfg.stream.head.stream_name = "stream1";
+    memcpy(cfg.stream.body.file.file, "./record1", strlen("./record1"));
+    stream_cfg_->AddStream(cfg);
+
+    cfg.id = 2;
+    cfg.stream.head.id = 2;
+    cfg.stream.head.stream_name = "stream2";
+    memcpy(cfg.stream.body.file.file, "./record2", strlen("./record2"));
+    stream_cfg_->AddStream(cfg);
+
+    cfg.id = 3;
+    cfg.stream.head.id = 3;
+    cfg.stream.head.stream_name = "stream3";
+    memcpy(cfg.stream.body.file.file, "./record3", strlen("./record3"));
+    stream_cfg_->AddStream(cfg);
+
+    cfg.stream.head.id = 4;
+    cfg.stream.head.stream_name = "stream4";
+    cfg.stream.head.connect_type = Config::kSerial;
+    cfg.stream.head.station_type = Config::kRoverStation;
+    cfg.stream.body.serial.baud = 115200;
+    memset(cfg.stream.body.serial.port, 0x00,
+           sizeof(cfg.stream.body.serial.port));
+    memcpy(cfg.stream.body.serial.port, "COM4", strlen("COM4"));
+    stream_cfg_->AddStream(cfg);
+
+    cfg.id = 1;
+    cfg.stream.head.id = 5;
+    cfg.stream.head.stream_name = "stream5";
+    cfg.stream.body.serial.baud = 38400;
+    memset(cfg.stream.body.serial.port, 0x00,
+           sizeof(cfg.stream.body.serial.port));
+    memcpy(cfg.stream.body.serial.port, "COM5", strlen("COM5"));
+    stream_cfg_->AddStream(cfg);
+
+    cfg.id = 2;
+    cfg.stream.head.id = 6;
+    cfg.stream.head.stream_name = "stream6";
+    cfg.stream.body.serial.baud = 9600;
+    memset(cfg.stream.body.serial.port, 0x00,
+           sizeof(cfg.stream.body.serial.port));
+    memcpy(cfg.stream.body.serial.port, "COM6", strlen("COM6"));
+    stream_cfg_->AddStream(cfg);
+
+    cfg.id = 1;
+    cfg.stream.head.id = 7;
+    cfg.stream.head.stream_name = "stream7";
+    cfg.stream.body.serial.baud = 921600;
+    memset(cfg.stream.body.serial.port, 0x00,
+           sizeof(cfg.stream.body.serial.port));
+    memcpy(cfg.stream.body.serial.port, "COM7", strlen("COM7"));
+    stream_cfg_->AddStream(cfg);
+
     stream_cfg_->SaveConfig();
 
     // stream_cfg_->DeleteStream(1, 1);
@@ -134,8 +169,8 @@ void TestJson() {
 
     // stream_cfg_->SaveConfig();
 
-    std::list<Config::Project_T> cfg;
-    stream_cfg_->GetConfig(cfg);
+    std::list<Config::Project_T> cfg0;
+    stream_cfg_->GetConfig(cfg0);
 
     size_t p_id = 1;
     size_t s_id = 2;
@@ -149,34 +184,6 @@ void TestJson() {
     return;
 }
 
-// typedef struct {
-//     int id;
-//     std::string ss;
-//     std::list<int> ll;
-// } P_T;
-
-// typedef struct {
-//     int x;
-//     std::string s;
-//     std::list<P_T> pt;
-// } T_T;
-
-// void GetList(std::list<T_T> &l) {
-//     P_T pt;
-//     pt.id = 1;
-//     pt.ss = "ss";
-//     pt.ll.push_back(1);
-//     pt.ll.push_back(2);
-
-//     T_T t;
-//     t.x = 0;
-//     t.s = "s";
-//     t.pt.push_back(pt);
-
-//     l.push_back(t);
-//     return;
-// }
-
 int main() {
     std::cout << "hello..." << std::endl;
 
@@ -189,11 +196,6 @@ int main() {
     // JsonFunc();
 
     TestJson();
-
-    // std::list<T_T> l;
-    // GetList(l);
-
-    // int x = 1;
 
     return 0;
 }

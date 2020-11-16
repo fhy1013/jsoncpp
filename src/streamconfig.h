@@ -14,8 +14,11 @@ const std::string kRoot = "root";
 const std::string kProject = "project";
 const std::string kStream = "stream";
 const std::string kId = "id";
-const std::string kType = "type";
+const std::string kConnectType = "connect_type";
 const std::string kStreamName = "stream_name";
+const std::string kStationType = "station_type";
+const std::string kBaseStation = "base_station";
+const std::string kRoverStation = "rover_station";
 
 const std::string kFile = "file";
 const std::string kFileNamePath = "file_name_path";
@@ -43,13 +46,18 @@ typedef struct {
 typedef union {
     File_T file;
     Serial_T serial;
-} StreamRes_T;
+} StreamBody_T;
 
 typedef struct {
-    size_t id;                // 流id
-    std::string type;         // 流类型
-    std::string stream_name;  // 流名称
-    StreamRes_T body;         // 流内容
+    size_t id;                 // 流id
+    std::string connect_type;  // 流连接类型
+    std::string stream_name;   // 流名称
+    std::string station_type;  // 站点类型
+} StreamHead_T;
+
+typedef struct {
+    StreamHead_T head;  // 流 内容头
+    StreamBody_T body;  // 流 内容体
 } Stream_T;
 
 typedef struct {
@@ -57,6 +65,11 @@ typedef struct {
     std::string project;         // 项目名称
     std::list<Stream_T> stream;  // 流
 } Project_T;
+
+typedef struct {
+    size_t id;        // 项目id
+    Stream_T stream;  // 流
+} AddStreamCfg_T;
 
 class StreamConfig {
    public:
@@ -87,41 +100,10 @@ class StreamConfig {
     // return   true 成功, false 失败
     bool AddStream(size_t project_id, Json::Value stream);
 
-    // 添加流，文件类型流
-    // param    size_t project_id       I   项目id
-    // param    size_t id               I   流id号
-    // param    std::string stream_name I   流名称
-    // param    std::string file_name   I   文件名 带路径
+    // 添加流
+    // param    const AddStreamCfg_T &cfg   I   流配置
     // return   true 成功, false 失败
-    bool AddStream(size_t project_id, size_t id, std::string stream_name,
-                   std::string file_name);
-
-    // 创建流 文件类型流
-    // param    size_t id               I   流id号
-    // param    std::string stream_name I   流名称
-    // param    std::string file_name   I   文件名 带路径
-    // return   true 成功, false 失败
-    Json::Value CreateStream(size_t id, std::string stream_name,
-                             std::string file_name);
-
-    // 添加流 串口类型流
-    // param    size_t project_id       I   项目id
-    // param    size_t id               I   流id号
-    // param    std::string stream_name I   流名称
-    // param    std::string port        I   串口号
-    // param    std::string baud        I   波特率
-    // return   true 成功, false 失败
-    bool AddStream(size_t project_id, size_t id, std::string stream_name,
-                   std::string port, int baud);
-
-    // 创建流 串口类型流
-    // param    size_t id               I   流id号
-    // param    std::string stream_name I   流名称
-    // param    std::string port        I   串口号
-    // param    std::string baud        I   波特率
-    // return   true 成功, false 失败
-    Json::Value CreateStream(size_t id, std::string stream_name,
-                             std::string port, int baud);
+    bool AddStream(const AddStreamCfg_T &cfg);
 
     //  删除流
     //  size_t project_id               I   项目id
@@ -162,13 +144,17 @@ class StreamConfig {
    private:
     void Init();
 
-    // Json 转为 StreamRes 结构体
-    // param    const std::string type      I   类型
-    // param    const Json::Value &json     I   json对象
-    // param    StreamRes &stream           O   StreamRes 结构体
+    // Stream_T 转 Json
+    // param    const Stream_T &stream  I   流配置
+    // param    Json::Value &stream     O   Json 对象
     // return   true 成功, false 失败
-    bool JsonToStreamRes(const std::string type, const Json::Value &json,
-                         StreamRes_T &stream);
+    bool StreamToJson(const Stream_T &stream_cfg, Json::Value &stream);
+
+    // Json 转 Stream_T
+    // param    const Json::Value &json I   Json流对象
+    // param    Stream_T &stream        O   Stream_T 对象
+    // return   true 成功, false 失败
+    bool JsonToStream(const Json::Value &json, Stream_T &stream);
 
    private:
     Json::Value root_;  // 根节点
