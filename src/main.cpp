@@ -187,7 +187,7 @@ void TestJson() {
 int main() {
     std::cout << "hello..." << std::endl;
 
-    // Test();
+    Test();
 
     // TestFunc1(2);
 
@@ -195,7 +195,7 @@ int main() {
 
     // JsonFunc();
 
-    TestJson();
+    // TestJson();
 
     return 0;
 }
