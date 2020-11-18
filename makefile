@@ -1,15 +1,21 @@
 # originating https://github.com/TheNetAdmin/Makefile-Templates
 # tool marcros
-CC := C:\mingw64\bin\g++.exe
-CCFLAG := -std=c++11
+CC := g++
+CCFLAG := -std=c++17
 DBGFLAG := -g
 CCOBJFLAG := $(CCFLAG) -c
+LIBFLAG := -L
+INCFLAG := -I
 
 # path marcros
 BIN_PATH := bin
 OBJ_PATH := obj
 SRC_PATH := src
+LIB_PATH := lib
+INC_PATH := inc
 DBG_PATH := debug
+
+LIBFLAG := $(LIBFLAG)./$(LIB_PATH)/
 
 # compile marcros
 TARGET_NAME := main
@@ -40,10 +46,10 @@ $(TARGET): $(OBJ)
 	$(CC) $(CCFLAG) -o $@ $^
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c*
-	$(CC) $(CCOBJFLAG) -o $@ $<
+	$(CC) $(CCOBJFLAG) $(INCFLAG)./$(INC_PATH) -o $@ $<
 
 $(DBG_PATH)/%.o: $(SRC_PATH)/%.c*
-	$(CC) $(CCOBJFLAG) $(DBGFLAG) -o $@ $<
+	$(CC) $(CCOBJFLAG) $(DBGFLAG) $(INCFLAG)./$(INC_PATH) -o $@ $<
 
 $(TARGET_DEBUG): $(OBJ_DEBUG)
 	$(CC) $(CCFLAG) $(DBGFLAG) $^ -o $@
