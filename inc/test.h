@@ -3,8 +3,8 @@
 
 bool Test();
 
-void TestFunc1(int x);
+void JsonFunc();
 
-void Test1();
+void TestJson();
 
 #endif  // _TEST_H_
