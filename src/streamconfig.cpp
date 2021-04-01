@@ -1,65 +1,8 @@
 #include "streamconfig.h"
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
+JsonConfig::StreamConfig::StreamConfig(std::string cfg_file): JsonConfigAbstract(cfg_file) { }
 
-Config::StreamConfig::StreamConfig() { Init(); }
-
-std::string Config::StreamConfig::ToString() const {
-    Json::StreamWriterBuilder writer_builder;
-    std::ostringstream os;
-
-    std::unique_ptr<Json::StreamWriter> json_writer(
-        writer_builder.newStreamWriter());
-    json_writer->write(root_, &os);
-    return os.str();
-}
-
-bool Config::StreamConfig::FromString(const std::string &str) {
-    JSONCPP_STRING errs;
-    Json::CharReaderBuilder reader_builder;
-
-    std::unique_ptr<Json::CharReader> const json_reader(
-        reader_builder.newCharReader());
-    bool res;
-    res = json_reader->parse(str.c_str(), str.c_str() + str.length(), &root_,
-                             &errs);
-    if (!res || !errs.empty()) {
-        std::cout << __func__ << " error" << std::endl;
-        return false;
-    }
-    return true;
-}
-
-bool Config::StreamConfig::SaveConfig() {
-    std::ofstream out(cfg_file_);
-    if (out.is_open()) {
-        out << ToString();
-        out.flush();
-        out.close();
-        return true;
-    } else {
-        std::cout << __func__ << " error" << std::endl;
-        return false;
-    }
-}
-
-bool Config::StreamConfig::LoadConfig() {
-    std::ifstream in(cfg_file_);
-    if (in.is_open()) {
-        std::stringstream ss;
-        ss << in.rdbuf();
-        std::string str(ss.str());
-        in.close();
-        return FromString(str);
-    } else {
-        std::cout << __func__ << " error" << std::endl;
-        return false;
-    }
-}
-
-bool Config::StreamConfig::AddStream(size_t project_id, Json::Value stream) {
+bool JsonConfig::StreamConfig::AddStream(size_t project_id, Json::Value stream) {
     Json::Value root;
     root = root_[kRoot];
     bool exist = false;  // 是否存在对应的project对象
@@ -75,7 +18,7 @@ bool Config::StreamConfig::AddStream(size_t project_id, Json::Value stream) {
     return exist;
 }
 
-bool Config::StreamConfig::AddStream(const AddStreamCfg_T &cfg) {
+bool JsonConfig::StreamConfig::AddStream(const AddStreamCfg_T &cfg) {
     Json::Value stream;
     if (StreamToJson(cfg.stream, stream))
         return AddStream(cfg.id, stream);
@@ -83,7 +26,7 @@ bool Config::StreamConfig::AddStream(const AddStreamCfg_T &cfg) {
         return false;
 }
 
-bool Config::StreamConfig::DeleteStream(size_t project_id, size_t id) {
+bool JsonConfig::StreamConfig::DeleteStream(size_t project_id, size_t id) {
     Json::Value root;
     root = root_[kRoot];
     bool exist = false;  // 是否存在对应的project对象
@@ -106,16 +49,17 @@ bool Config::StreamConfig::DeleteStream(size_t project_id, size_t id) {
     return exist;
 }
 
-bool Config::StreamConfig::AddProject(std::string project, size_t project_id) {
+bool JsonConfig::StreamConfig::AddProject(std::string project, size_t project_id, std::string type) {
     Json::Value obj;
     obj[kProject] = project;
     obj[kId] = project_id;
-    Json::Value stream;
+    obj[kProType] = type;
+
     root_[kRoot].append(obj);
     return true;
 }
 
-bool Config::StreamConfig::DeleteProject(size_t project_id) {
+bool JsonConfig::StreamConfig::DeleteProject(size_t project_id) {
     Json::Value root;
     root = root_[kRoot];
     bool exist = false;
@@ -131,7 +75,7 @@ bool Config::StreamConfig::DeleteProject(size_t project_id) {
     return exist;
 }
 
-bool Config::StreamConfig::EditProject(std::string project, size_t project_id) {
+bool JsonConfig::StreamConfig::EditProject(std::string project, size_t project_id) {
     Json::Value root;
     root = root_[kRoot];
     bool exist = false;
@@ -146,31 +90,33 @@ bool Config::StreamConfig::EditProject(std::string project, size_t project_id) {
     return exist;
 }
 
-bool Config::StreamConfig::GetConfig(std::list<Project_T> &cfg) {
+bool JsonConfig::StreamConfig::GetConfig(std::list<Project_T> &cfg) {
     Json::Value root;
     root = root_[kRoot];
-    bool exist = false;
+    bool exist = true;
     if (!root.isNull()) {
         for (auto i = 0; static_cast<size_t>(i) < root.size(); ++i) {
             Project_T pro;
             pro.id = root[i][kId].asUInt();
             pro.project = root[i][kProject].asString();
+            pro.type = root[i][kProType].asString();
             Json::Value stream = root[i][kStream];
             if (0 < stream.size()) {
                 for (auto j = 0; static_cast<size_t>(j) < stream.size(); ++j) {
                     Stream_T res;
                     JsonToStream(stream[j], res);
                     pro.stream.push_back(res);
-                    exist = true;
                 }
             }
             cfg.push_back(pro);
         }
+    }else{
+        exist = false;
     }
     return exist;
 }
 
-bool Config::StreamConfig::GetConfig(const size_t project_id,
+bool JsonConfig::StreamConfig::GetConfig(const size_t project_id,
                                      const size_t stream_id, Project_T &cfg) {
     Json::Value root;
     root = root_[kRoot];
@@ -188,6 +134,7 @@ bool Config::StreamConfig::GetConfig(const size_t project_id,
                             cfg.stream.push_back(res);
                             cfg.id = project_id;
                             cfg.project = root[i][kProject].asString();
+                            cfg.type = root[i][kProType].asString();
                             exist = true;
                             break;
                         }
@@ -200,9 +147,7 @@ bool Config::StreamConfig::GetConfig(const size_t project_id,
     return exist;
 }
 
-void Config::StreamConfig::Init() { LoadConfig(); }
-
-bool Config::StreamConfig::StreamToJson(const Stream_T &stream_cfg,
+bool JsonConfig::StreamConfig::StreamToJson(const Stream_T &stream_cfg,
                                         Json::Value &stream) {
     bool exist = true;  // 流类型 存在
     if (stream_cfg.head.connect_type == kFile) {
@@ -224,7 +169,7 @@ bool Config::StreamConfig::StreamToJson(const Stream_T &stream_cfg,
     return exist;
 }
 
-bool Config::StreamConfig::JsonToStream(const Json::Value &json,
+bool JsonConfig::StreamConfig::JsonToStream(const Json::Value &json,
                                         Stream_T &stream) {
     bool exist = true;
     auto type = json[kConnectType].asString();

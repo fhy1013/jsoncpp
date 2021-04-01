@@ -1,98 +1,16 @@
 #ifndef STREAMCONFIG_H
 #define STREAMCONFIG_H
 
-#include <list>
+#include "jsonconfigabstract.h"
 
-#include "json.h"
+namespace JsonConfig {
 
-namespace Config {
-
-const size_t kFileLen = 1024;
-const size_t kSerLen = 256;
-
-const std::string kRoot = "root";
-const std::string kProject = "project";
-const std::string kStream = "stream";
-const std::string kId = "id";
-const std::string kConnectType = "connect_type";
-const std::string kStreamName = "stream_name";
-const std::string kStationType = "station_type";
-const std::string kBaseStation = "base_station";
-const std::string kRoverStation = "rover_station";
-
-const std::string kFile = "file";
-const std::string kFileNamePath = "file_name_path";
-
-const std::string kSerial = "serial";
-const std::string kPort = "port";
-const std::string kBaud = "baud";
-// const std::string kBit = "bit";
-// const std::string kParity = "parity";
-// const std::string kStop = "stop";
-// const std::string kFlow = "flow";
-
-typedef struct {
-    char file[kFileLen];
-} File_T;
-typedef struct {
-    char port[kSerLen];
-    int baud;
-    //    int bit;
-    //    int parity;
-    //    int stop;
-    //    int flow;
-} Serial_T;
-
-typedef union {
-    File_T file;
-    Serial_T serial;
-} StreamBody_T;
-
-typedef struct {
-    size_t id;                 // 流id
-    std::string connect_type;  // 流连接类型
-    std::string stream_name;   // 流名称
-    std::string station_type;  // 站点类型
-} StreamHead_T;
-
-typedef struct {
-    StreamHead_T head;  // 流 内容头
-    StreamBody_T body;  // 流 内容体
-} Stream_T;
-
-typedef struct {
-    size_t id;                   // 项目id
-    std::string project;         // 项目名称
-    std::list<Stream_T> stream;  // 流
-} Project_T;
-
-typedef struct {
-    size_t id;        // 项目id
-    Stream_T stream;  // 流
-} AddStreamCfg_T;
-
-class StreamConfig {
+class StreamConfig : public JsonConfigAbstract{
    public:
     enum CfgType { NONE, SERIAL, FILE };
 
    public:
-    StreamConfig();
-
-    // json 转为string
-    std::string ToString() const;
-
-    // 从string转为json 对象
-    // param    const std::string &str  I   输入字符串
-    // return   true 成功, false 失败
-    bool FromString(const std::string &str);
-
-    // 保存流配置到文件
-    // return   true 成功, false 失败
-    bool SaveConfig();
-
-    // 加载配置文件中的配置
-    // return   true 成功, false 失败
-    bool LoadConfig();
+    StreamConfig(std::string cfg_file = "stream.json");
 
     // 添加流
     // param    size_t project_id       I   项目id
@@ -114,8 +32,9 @@ class StreamConfig {
     // 添加项目
     // param    std::string project     I   项目名称
     // param    size_t project_id       I   项目id
+    // param    std::string type        I   项目类型
     // return   true 成功, false 失败
-    bool AddProject(std::string project, size_t project_id);
+    bool AddProject(std::string project, size_t project_id, std::string type);
 
     // 删除项目
     //  size_t project_id   I   项目id
@@ -142,8 +61,6 @@ class StreamConfig {
                    Project_T &cfg);
 
    private:
-    void Init();
-
     // Stream_T 转 Json
     // param    const Stream_T &stream  I   流配置
     // param    Json::Value &stream     O   Json 对象
@@ -156,12 +73,8 @@ class StreamConfig {
     // return   true 成功, false 失败
     bool JsonToStream(const Json::Value &json, Stream_T &stream);
 
-   private:
-    Json::Value root_;  // 根节点
-
-    std::string cfg_file_ = ".cfg";  // 配置文件
 };
 
-};  // namespace Config
+}  // namespace JsonConfig
 
 #endif  // STREAMCONFIG_H

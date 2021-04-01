@@ -8,38 +8,39 @@
 #include <vector>
 
 #include "idmanagement.h"
-#include "json.h"
+#include "solveconfig.h"
 #include "streamconfig.h"
 
 bool Test() {
-    ID::IdManagement id;
+    std::string cfg_file = "solve.json";
+    JsonConfig::SolveConfig solve(cfg_file);
+    size_t project = 1;
+    std::multimap<size_t, size_t> obj;
+    obj.emplace(1, 2);
+    obj.emplace(1, 3);
+    obj.emplace(1, 4);
+    obj.emplace(2, 1);
+    // solve.AddProject(project, obj);
+    // solve.SaveConfig();
 
-    // auto p_id0 = id.GenerateProjectId();
-    // auto p_id1 = id.GenerateProjectId();
-    // auto p_id2 = id.GenerateProjectId();
-    // auto s_id0 = id.GenerateStreamId();
-    // auto s_id1 = id.GenerateStreamId();
-    // auto s_id2 = id.GenerateStreamId();
+    size_t project2 = 2;
+    // solve.AddProject(project2, obj);
+    // solve.SaveConfig();
 
-    // auto res0 = id.DestoryProjectId(p_id1);
-    // auto res1 = id.DestoryStreamId(s_id1);
+    std::map<size_t, std::multimap<size_t, size_t>> objects;
+    auto res = solve.GetConfig(objects);
 
-    // auto p_id3 = id.GenerateProjectId();
-    // auto p_id4 = id.GenerateProjectId();
-    // auto res2 = id.AddProjectId(5);
+    // JsonConfig::SolveConfig solve1(cfg_file);
+    // // solve1.DeleteObject(project, obj1);
+    // solve1.DeleteProject(project);
+    // solve1.SaveConfig();
 
-    // auto s_id3 = id.GenerateStreamId();
-    // auto s_id4 = id.GenerateStreamId();
-    // auto res3 = id.AddStreamId(5);
+    // JsonConfig::SolveConfig solve2(cfg_file);
+    // // solve2.DeleteProject(project);
+    // solve2.AddProject(project, obj);
+    // solve2.SaveConfig();
 
-    id.AddStreamId(1);
-    id.AddStreamId(5);
-    id.AddStreamId(7);
-    id.AddStreamId(2);
-    id.AddStreamId(6);
-    id.AddStreamId(4);
-    id.AddStreamId(3);
-
+    int x;
     return true;
 }
 
@@ -123,98 +124,4 @@ void JsonFunc() {
     }
 }
 
-void TestJson() {
-    std::shared_ptr<Config::StreamConfig> stream_cfg_;
-
-    stream_cfg_.reset(new Config::StreamConfig);
-
-    stream_cfg_->AddProject("pro_1", 1);
-    stream_cfg_->AddProject("pro_2", 2);
-    stream_cfg_->AddProject("pro_3", 3);
-    stream_cfg_->AddProject("pro_4", 4);
-    // stream_cfg_->DeleteProject(1);
-
-    Config::AddStreamCfg_T cfg;
-    cfg.id = 1;
-    Config::Stream_T stream;
-    cfg.stream.head.id = 1;
-    cfg.stream.head.connect_type = Config::kFile;
-    cfg.stream.head.station_type = Config::kBaseStation;
-    cfg.stream.head.stream_name = "stream1";
-    memcpy(cfg.stream.body.file.file, "./record1", strlen("./record1"));
-    stream_cfg_->AddStream(cfg);
-
-    cfg.id = 2;
-    cfg.stream.head.id = 2;
-    cfg.stream.head.stream_name = "stream2";
-    memcpy(cfg.stream.body.file.file, "./record2", strlen("./record2"));
-    stream_cfg_->AddStream(cfg);
-
-    cfg.id = 3;
-    cfg.stream.head.id = 3;
-    cfg.stream.head.stream_name = "stream3";
-    memcpy(cfg.stream.body.file.file, "./record3", strlen("./record3"));
-    stream_cfg_->AddStream(cfg);
-
-    cfg.stream.head.id = 4;
-    cfg.stream.head.stream_name = "stream4";
-    cfg.stream.head.connect_type = Config::kSerial;
-    cfg.stream.head.station_type = Config::kRoverStation;
-    cfg.stream.body.serial.baud = 115200;
-    memset(cfg.stream.body.serial.port, 0x00,
-           sizeof(cfg.stream.body.serial.port));
-    memcpy(cfg.stream.body.serial.port, "COM4", strlen("COM4"));
-    stream_cfg_->AddStream(cfg);
-
-    cfg.id = 1;
-    cfg.stream.head.id = 5;
-    cfg.stream.head.stream_name = "stream5";
-    cfg.stream.body.serial.baud = 38400;
-    memset(cfg.stream.body.serial.port, 0x00,
-           sizeof(cfg.stream.body.serial.port));
-    memcpy(cfg.stream.body.serial.port, "COM5", strlen("COM5"));
-    stream_cfg_->AddStream(cfg);
-
-    cfg.id = 2;
-    cfg.stream.head.id = 6;
-    cfg.stream.head.stream_name = "stream6";
-    cfg.stream.body.serial.baud = 9600;
-    memset(cfg.stream.body.serial.port, 0x00,
-           sizeof(cfg.stream.body.serial.port));
-    memcpy(cfg.stream.body.serial.port, "COM6", strlen("COM6"));
-    stream_cfg_->AddStream(cfg);
-
-    cfg.id = 1;
-    cfg.stream.head.id = 7;
-    cfg.stream.head.stream_name = "stream7";
-    cfg.stream.body.serial.baud = 921600;
-    memset(cfg.stream.body.serial.port, 0x00,
-           sizeof(cfg.stream.body.serial.port));
-    memcpy(cfg.stream.body.serial.port, "COM7", strlen("COM7"));
-    stream_cfg_->AddStream(cfg);
-
-    stream_cfg_->SaveConfig();
-
-    // stream_cfg_->DeleteStream(1, 1);
-    // stream_cfg_->DeleteStream(2, 2);
-    // stream_cfg_->DeleteStream(2, 6);
-    // stream_cfg_->EditProject("pro_1_1", 1);
-
-    // stream_cfg_->DeleteProject(3);
-
-    // stream_cfg_->SaveConfig();
-
-    std::list<Config::Project_T> cfg0;
-    stream_cfg_->GetConfig(cfg0);
-
-    size_t p_id = 1;
-    size_t s_id = 2;
-    Config::Project_T cfg1;
-    auto res = stream_cfg_->GetConfig(p_id, s_id, cfg1);
-    s_id = 5;
-    res = stream_cfg_->GetConfig(p_id, s_id, cfg1);
-
-    int x = 0;
-
-    return;
-}
+void TestJson() { return; }
